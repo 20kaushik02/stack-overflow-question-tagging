@@ -4,3 +4,5 @@
 # Storage
 *.csv
 *.pkl
+*.csv#
+*.pyc
