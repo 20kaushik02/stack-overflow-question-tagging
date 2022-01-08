@@ -5,7 +5,15 @@ import sys, csv, os
 import glob
 import joblib
 
+
 from TagPredictor_misc import *
+import dill as pickled
+
+vec = open("../models/test_vec.pickle", 'rb')
+vectorizer = pickled.load(vec)
+
+count_vec = open("../models/test_count_vec.pickle", 'rb')
+count_vectorizer = pickled.load(count_vec)
 
 class TagPredictor(QMainWindow):
     def __init__(self):
@@ -17,7 +25,7 @@ class TagPredictor(QMainWindow):
         
         self.setMinimumSize(self.width, self.height)
         
-        classifierList = glob.glob('../models/*_clf.joblib')
+        classifierList = glob.glob('../models/*_2_clf.joblib')
         self.classifiers = [joblib.load(clf) for clf in classifierList]
         
         self.linkLabel = QLabel("Link: ")
@@ -120,13 +128,13 @@ class TagPredictor(QMainWindow):
             self.lemmatizeTab.setText(lemmatizeBox)
             
             
-            X_tfidf = vectorizeQn(" ".join(qnTitle), " ".join(qnBody))    
-            multilabel_binarizer = joblib.load('../models/multilabel_binarizer.joblib')
+            X_tfidf = vectorizeQn(" ".join(qnTitle) + " ".join(qnTitle) + " ".join(qnTitle) + " ".join(qnBody))    
+            #multilabel_binarizer = joblib.load('../models/count_vectorizer.joblib')
         
             results = set()
             for i, classifier in enumerate(self.classifiers):
                     y_pred = classifier.predict(X_tfidf)
-                    preds = list(multilabel_binarizer.inverse_transform(y_pred)[0])
+                    preds = list(count_vectorizer.inverse_transform(y_pred)[0])
                     self.classifierTable.setItem(i, 1, QTableWidgetItem(str(preds)))
                     results.update(preds)
             
@@ -157,7 +165,7 @@ class TagPredictor(QMainWindow):
         for row, classifierPath in enumerate(classifierList):
             rowpos = self.classifierTable.rowCount()
             self.classifierTable.insertRow(rowpos)
-            self.classifierTable.setItem(rowpos, 0, QTableWidgetItem(str(os.path.basename(classifierPath).split("_clf")[0])))
+            self.classifierTable.setItem(rowpos, 0, QTableWidgetItem(str(os.path.basename(classifierPath).split("_")[0])))
             
 class TabBar(QTabBar):
     def tabSizeHint(self, index):
@@ -192,7 +200,8 @@ class VerticalTabWidget(QTabWidget):
         QTabWidget.__init__(self, *args, **kwargs)
         self.setTabBar(TabBar())
         self.setTabPosition(QTabWidget.West)
-        
+
+
 def main():
     app = QApplication(sys.argv)
     aunms = TagPredictor()

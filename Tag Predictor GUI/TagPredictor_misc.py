@@ -13,6 +13,7 @@ import joblib
 from scipy.sparse import hstack
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
+import dill as pickled
 
 import nltk
 nltk.download("punkt")
@@ -62,10 +63,17 @@ def lemmatizeText(words):
 
 vectorizer_X1 = joblib.load('../models/vectorizer_x1.joblib')
 vectorizer_X2 = joblib.load('../models/vectorizer_x2.joblib')
+#vectorizer = joblib.load('../models/Vectorizer.joblib')
 
-def vectorizeQn(title, body):
-    X1_tfidf = vectorizer_X1.transform(pd.Series([body]).astype('U'))
-    X2_tfidf = vectorizer_X2.transform(pd.Series([title]).astype('U'))
-    
-    X_tfidf = hstack([X1_tfidf,X2_tfidf])
+def text_splitter(text):
+    return text.split()
+
+vec = open("../models/test_vec.pickle", 'rb')
+vectorizer = pickled.load(vec)
+
+count_vec = open("../models/test_count_vec.pickle", 'rb')
+count_vectorizer = pickled.load(count_vec)
+
+def vectorizeQn(qn):
+    X_tfidf = vectorizer.transform(pd.Series([qn]).astype('U'))  
     return X_tfidf
