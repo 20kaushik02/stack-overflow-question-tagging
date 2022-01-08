@@ -10,7 +10,6 @@ https://stackoverflow.com/questions/tagged/compiler-errors?tab=newest&page=2&pag
 
 """
 
-#%%
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -18,7 +17,6 @@ import os
 import re
 import math
 
-#%%
 
 def tag_scrape(tag_keyword):
     url = "https://stackoverflow.com/filter/tags-for-index"
