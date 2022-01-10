@@ -27,7 +27,7 @@ class TagPredictor(QMainWindow):
         
         classifierList = glob.glob('../models/*_2_clf.joblib')
         self.classifiers = [joblib.load(clf) for clf in classifierList]
-        
+        print(self.classifiers)
         self.linkLabel = QLabel("Link: ")
         self.questionLink = QLineEdit()
         self.questionLink.setMinimumHeight(30)
@@ -78,7 +78,7 @@ class TagPredictor(QMainWindow):
         self.preprocessTabs.addTab(self.lemmatizeTab, "5. Lemmatization")
         self.layout.addWidget(self.preprocessTabs, 4, 0, 1, 2)
         
-        self._createClassifierTable(["Classifier", "Prediction"], classifierList)
+        self._createClassifierTable(["Classifier", "Predicted tags with confidence scores"], classifierList)
         self.classifierTable.setMinimumHeight(300)
         self.layout.addWidget(self.classifierTable, 5, 0, 1, 2, Qt.AlignTop)
         
@@ -128,19 +128,29 @@ class TagPredictor(QMainWindow):
             self.lemmatizeTab.setText(lemmatizeBox)
             
             
-            X_tfidf = vectorizeQn(" ".join(qnTitle) + " ".join(qnTitle) + " ".join(qnTitle) + " ".join(qnBody))    
-            #multilabel_binarizer = joblib.load('../models/count_vectorizer.joblib')
+            X_tfidf = vectorizeQn(" ".join(qnTitle) + " ".join(qnTitle) + " ".join(qnTitle)\
+                                  + " ".join(qnBody))    
         
             results = set()
             for i, classifier in enumerate(self.classifiers):
                     y_pred = classifier.predict(X_tfidf)
+                    if i in [0, 2, 3]:
+                        y_fd = classifier.decision_function(X_tfidf)
+                        scores = calcPredScore(y_pred, y_fd)
+                    else:
+                        y_prob = classifier.predict_proba(X_tfidf)
+                        scores = calcProbScore(y_pred, y_prob)
+    
                     preds = list(count_vectorizer.inverse_transform(y_pred)[0])
-                    self.classifierTable.setItem(i, 1, QTableWidgetItem(str(preds)))
+                    res = ", ".join([f'{preds[i]} - {round(scores[i], 4)}' for i in range(len(preds))])
+                    
+                    self.classifierTable.setItem(i, 1, QTableWidgetItem(str(res)))
                     results.update(preds)
             
             self.predictedTags.setText(', '.join(str(tag) for tag in results))
         except:
             pass
+
         
     def _createClassifierTable(self, headers, classifierList):
         

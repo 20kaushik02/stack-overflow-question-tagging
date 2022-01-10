@@ -14,6 +14,8 @@ from scipy.sparse import hstack
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 import dill as pickled
+import numpy as np
+from scipy.special import softmax
 
 import nltk
 nltk.download("punkt")
@@ -77,3 +79,25 @@ count_vectorizer = pickled.load(count_vec)
 def vectorizeQn(qn):
     X_tfidf = vectorizer.transform(pd.Series([qn]).astype('U'))  
     return X_tfidf
+
+def calcPredScore(y_pred, y_fd):
+    temp_list = []
+    for i in y_pred:
+        temp_list.append(list(i.A[0]))
+        
+    idx = np.where(np.array(temp_list[0])==1)
+    
+    a = y_fd[0]
+    normalized = (a-min(a))/(max(a)-min(a))
+    scores = normalized[idx]
+    
+    return scores
+    
+def calcProbScore(y_pred, y_prob):
+    temp_list = []
+    for i in y_pred:
+        temp_list.append(list(i.A[0]))
+    idx = np.where(np.array(temp_list[0])==1)
+    y_prob = y_fd = np.array(y_prob[0])[idx]
+    
+    return y_prob
